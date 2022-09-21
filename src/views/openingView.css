@@ -1,0 +1,40 @@
+rect.node {
+    width: 55px;
+    height: 55px;
+    stroke: rgb(90, 90, 90);
+    cursor: pointer;
+    stroke-width: 2;
+}
+
+rect.blackMove {
+    fill: #b4b4b4
+}
+
+rect.whiteMove {
+    fill: white;
+}
+
+text.nodeText {
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-size: 12pt;
+    font-weight: 500;
+    pointer-events: none;
+}
+
+div .svgViewer {
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    margin: 10px;
+    background-color: rgb(14, 43, 70);
+}
+
+/* rectangle matching the view, to match background */
+g>rect {
+    fill: hsl(209, 67%, 30%);
+}
+
+g#d3-tree-draw path {
+    fill: azure
+}
