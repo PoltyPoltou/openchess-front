@@ -17,3 +17,8 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+cg-board {
+  background-color: #f0d9b5;
+  background-image: url("/resources/grey.jpg") ! important;
+}

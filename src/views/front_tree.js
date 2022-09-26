@@ -1,52 +1,25 @@
-import { hierarchy, linkVertical, select, tree } from 'd3';
+import { linkVertical, select } from 'd3';
 import React from 'react';
+import ReactTooltip from 'react-tooltip-rc';
 
-const gameTest = {
-    san: "Root",
-    id: "0",
-    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    color: "black",
-    children: [
-        { san: "e4", children: [], id: "1", color: "white" },
-        { san: "d4", children: [], id: "2", color: "white" }
-    ]
-}
+const rectSize = 55
+class CreateTree extends React.Component {
+    svgRef = React.createRef(null)
 
-const chessDataHeriarchy = hierarchy(gameTest, d => d.children)
+    componentDidUpdate() {
+        const svg = select(this.svgRef.current)
 
-const CreateTree = () => {
-    const svgRef = React.useRef(null)
 
-    const rectSize = 55
-
-    let x0 = Infinity;
-    let x1 = -Infinity;
-    let y0 = Infinity;
-    let y1 = -Infinity;
-
-    chessDataHeriarchy.each(d => {
-        if (d.x > x1) x1 = d.x;
-        if (d.x < x0) x0 = d.x;
-        if (d.y > y1) y1 = d.y;
-        if (d.y < y0) y0 = d.y;
-    });
-    const height = y1 - y0 + rectSize + 2
-    const width = x1 - x0 + rectSize + 2
-
-    React.useEffect(() => {
-
-        const svg = select(svgRef.current)
-
-        svg.attr("id", "d3-tree-draw")
-
-        // const animTime = 500
-        const nodeData = tree().nodeSize([rectSize * 1.1, rectSize * 1.4])(chessDataHeriarchy).descendants()
-
+        const setterTooltipData = this.props.setterTooltipData
+        const setterSelectedData = this.props.setterSelectedData
+        const nodeData = this.props.nodeData
+        const chessDataHeriarchy = this.props.chessDataHeriarchy
+        const width = this.props.width
         nodeData.forEach(function (elmt, index, arr) {
-            arr[index].x = elmt.x + rectSize / 2 + 3.5
-            arr[index].y = elmt.y + 1
-        }
-        )
+            arr[index].x = elmt.x + width / 2 - rectSize / 2
+            arr[index].y = elmt.y
+        })
+        svg.attr("id", "d3-tree-draw")
         const g = svg
 
         let sourcePos = d => [d.source.x + rectSize / 2, d.source.y + rectSize]
@@ -54,7 +27,7 @@ const CreateTree = () => {
         pathes.enter().insert("path")
             .classed("line", true)
             .merge(pathes)
-            .attr("d", linkVertical().source(sourcePos).target(sourcePos))
+            // .attr("d", linkVertical().source(sourcePos).target(sourcePos))
             // .transition()
             // .duration(animTime)
             .attr("d", linkVertical()
@@ -62,21 +35,23 @@ const CreateTree = () => {
                 .target(d => [d.target.x + rectSize / 2, d.target.y]))
         pathes.exit().remove()
 
-        const nodes = g.selectAll("rect").data(nodeData)
-        g.selectAll("rect").data(nodeData, d => d.data.id)
+        const nodes = g.selectAll("circle").data(nodeData)
+        g.selectAll("circle").data(nodeData, d => d.data.id)
             .enter()
-            .append("rect")
+            .append("circle")
             .merge(nodes)
             //     .attr("x", d => d.parent ? d.parent.x : 0)
             //     .attr("y", d => d.parent ? d.parent.y : 0)
-            .on("mousemove", function (evt, obj, n) {
-                if (evt.shiftKey) {
-                    console.log("d3")
-                }
+            .on("mousemove", (evt, obj, n) => {
+                setterTooltipData(obj.data)
             })
-            .attr("data-tip", d => d.data.fen)
-            .attr("data-event", "click")
-            .attr("data-for", "fen")
+            .on("click", (evt, obj, n) => {
+                setterSelectedData(obj.data.id)
+            })
+            .attr("data-tip", "")
+            .attr("data-event", "mousemove")
+            .attr("data-event-off", "click")
+            .attr("data-for", "quickview")
             //     // .on("mouseover", function (evt, d) { d.hovered = true; updateTree() })
             //     // .on("mouseout", function (evt, d) { d.hovered = false; updateTree() })
             .classed("node", true)
@@ -86,13 +61,15 @@ const CreateTree = () => {
             //     .classed("activeNode", d => d.active)
             //     .transition()
             //     .duration(animTime)
-            .attr("x", d => d.x)
-            .attr("y", d => d.y)
+            .attr("cx", d => d.x + rectSize / 2)
+            .attr("cy", d => d.y + rectSize / 2)
+        nodes.exit().remove()
 
         const texts = g.selectAll("text").data(nodeData, d => d.data.id)
         texts.enter()
             .append("text")
             .classed("nodeText", true)
+            .merge(texts)
             // .merge(texts)
             //     // .attr("x", d => d.parent ? d.parent.x + rectSize / 2 : rectSize / 2)
             //     // .attr("y", d => d.parent ? d.parent.y + rectSize / 2 : rectSize / 2)
@@ -102,11 +79,15 @@ const CreateTree = () => {
             //     // .duration(animTime)
             .attr("x", d => d.x + rectSize / 2)
             .attr("y", d => d.y + rectSize / 2)
-        // texts.exit().remove()
-    })
+        texts.exit().remove()
 
-    return <g height={500} width={500} ref={svgRef}>
-    </g>
+        ReactTooltip.rebuild()
+    }
+
+    render() {
+        return <g ref={this.svgRef}>
+        </g>
+    }
 }
 
 
