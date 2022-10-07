@@ -11,6 +11,7 @@ import ReactTooltip from "react-tooltip-rc";
 import Chessground from "@react-chess/chessground";
 import { hierarchy, tree } from "d3";
 import AddOpeningWidget from "./openingView/addOpeningWidget";
+import { Alert, Snackbar } from "@mui/material";
 const rectSize = 55
 class OpeningView extends React.Component {
     Viewer = React.createRef(null)
@@ -21,11 +22,11 @@ class OpeningView extends React.Component {
         this.state = {
             svgTool: TOOL_AUTO,
             svgValue: INITIAL_VALUE,
-            openingTree: null,
             color: true,
             openings: [],
             selectedOpening: null,
             selectedData: null,
+            snackbar: { open: false, msg: "", severity: "error" }
         }
         this.hoveredData = null
         this.shouldFit = 0
@@ -39,60 +40,83 @@ class OpeningView extends React.Component {
         this.addOpening = this.addOpening.bind(this)
         this.setSelectedOpening = this.setSelectedOpening.bind(this)
         this.deleteSelectedOpening = this.deleteSelectedOpening.bind(this)
+        this.handleError = this.handleError.bind(this)
+    }
+
+    handleError(msg) {
+        this.setState({ snackbar: { open: true, severity: "error", msg: msg } })
+    }
+
+    handleWarning(msg) {
+        this.setState({ snackbar: { open: true, severity: "warning", msg: msg } })
+    }
+
+    handleSuccess(msg) {
+        this.setState({ snackbar: { open: true, severity: "success", msg: msg } })
     }
 
     addOpening(name, fen) {
         axios.post("http://localhost:8080/opening/", { fen: fen, name: name })
             .then((response) => this.setSelectedOpening(response.data))
-            .catch((error) => { console.error(error.message) });
+            .catch((error) => { this.handleError(error.message) });
     }
 
     setOpenings(openings) {
         this.setState({ openings: openings })
         // loading the openings, set default value to selectedOpening
         if (openings && this.state.selectedOpening == null) {
-            this.setSelectedOpening(openings[0].id)
-            this.setSelectedData(openings[0].startingNode.id)
+            if (openings.length == 0) {
+                this.handleWarning("No opening found")
+            } else {
+                this.setSelectedOpening(openings[0].id)
+                this.setSelectedData(openings[0].startingNode.id)
+            }
         }
     }
 
     getOpenings() {
         axios.get("http://localhost:8080/opening/")
             .then((response) => this.setOpenings(response.data))
-            .catch((error) => { console.error(error.message) });
+            .catch((error) => { this.handleError(error.message) });
     }
 
     getOpening(id, callback) {
         axios.get("http://localhost:8080/opening/" + id)
             .then((response) => callback(response.data))
-            .catch((error) => { console.error(error.message) });
+            .catch((error) => { this.handleError(error.message) });
     }
 
     getNode(id, callback) {
         axios.get("http://localhost:8080/chessnode/" + id)
             .then((response) => callback(response.data))
-            .catch((error) => { console.error(error.message) });
+            .catch((error) => { this.handleError(error.message) });
     }
 
     deleteSelectedNode() {
-        this.setSelectedData(this.getSelectedData().parentId)
-        axios.delete("http://localhost:8080/chessnode/" + this.getSelectedData().id)
-            .then(response => this.setSelectedOpening(this.state.selectedOpening.id))
-            .catch((error) => { console.error(error.message) });
+        if (this.getSelectedData().parentId != -1) {
+            this.setSelectedData(this.getSelectedData().parentId)
+            axios.delete("http://localhost:8080/chessnode/" + this.getSelectedData().id)
+                .then(response => this.setSelectedOpening(this.state.selectedOpening.id))
+                .catch((error) => { this.handleError(error.message) });
+        } else {
+            this.handleError("Can't delete node that has no parent")
+        }
     }
+
     deleteSelectedOpening() {
-        this.setSelectedOpening(null)
         axios.delete("http://localhost:8080/opening/" + this.state.selectedOpening.id)
             .then(response => this.getOpenings())
-            .catch((error) => { console.error(error.message) });
+            .catch((error) => { this.handleError(error.message) });
+        this.setSelectedOpening(null)
     }
+
     addNode(uci) {
         axios.post("http://localhost:8080/chessnode/" + this.getSelectedData().id, { uci: uci })
             .then(response => {
                 this.setSelectedOpening(this.state.selectedOpening.id)
                 this.setSelectedData(response.data)
             })
-            .catch((error) => { console.error(error.message) });
+            .catch((error) => { this.handleError(error.message) });
     }
 
     setSelectedOpening(id) {
@@ -241,6 +265,14 @@ class OpeningView extends React.Component {
                     getContent={this.getTooltipContent(this)}
                 />
                 <Chessground contained={false} width={400} height={400} config={this.getSelectedDataConfig()}></Chessground>
+                <Snackbar
+                    open={this.state.snackbar.open}
+                    autoHideDuration={5000}
+                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}>
+                    <Alert variant="filled" severity={this.state.snackbar.severity}>
+                        {this.state.snackbar.msg}
+                    </Alert>
+                </Snackbar>
             </div >
         )
     }
