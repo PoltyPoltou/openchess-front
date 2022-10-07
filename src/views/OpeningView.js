@@ -11,7 +11,6 @@ import ReactTooltip from "react-tooltip-rc";
 import Chessground from "@react-chess/chessground";
 import { hierarchy, tree } from "d3";
 import AddOpeningWidget from "./openingView/addOpeningWidget";
-import { Alert, Snackbar } from "@mui/material";
 import NotificationWidget from "./openingView/notificationWidget";
 const rectSize = 55
 class OpeningView extends React.Component {
@@ -72,7 +71,7 @@ class OpeningView extends React.Component {
         this.setState({ openings: openings })
         // loading the openings, set default value to selectedOpening
         if (openings && this.state.selectedOpening == null) {
-            if (openings.length == 0) {
+            if (openings.length === 0) {
                 this.handleWarning("No opening found")
             } else {
                 this.setSelectedOpening(openings[0].id)
@@ -100,7 +99,7 @@ class OpeningView extends React.Component {
     }
 
     deleteSelectedNode() {
-        if (this.getSelectedData().parentId != -1) {
+        if (this.getSelectedData().parentId !== -1) {
             this.setSelectedData(this.getSelectedData().parentId)
             axios.delete("http://localhost:8080/chessnode/" + this.getSelectedData().id)
                 .then(response => this.setSelectedOpening(this.state.selectedOpening.id))
@@ -218,7 +217,7 @@ class OpeningView extends React.Component {
                         <AddOpeningWidget addopening={this.addOpening} />
                         {this.state.openings.map(op =>
                             <li key={op.name}>
-                                <a onClick={() => this.setSelectedOpening(op.id)} className={this.state.selectedOpening && op.id == this.state.selectedOpening.id ? 'selected' : undefined}>
+                                <a onClick={() => this.setSelectedOpening(op.id)} className={this.state.selectedOpening && op.id === this.state.selectedOpening.id ? 'selected' : undefined}>
                                     {op.name}
                                 </a>
                             </li>)
