@@ -10,9 +10,11 @@ import "./openingView.css"
 import ReactTooltip from "react-tooltip-rc";
 import Chessground from "@react-chess/chessground";
 import { hierarchy, tree } from "d3";
+import AddOpeningWidget from "./openingView/addOpeningWidget";
 const rectSize = 55
 class OpeningView extends React.Component {
     Viewer = React.createRef(null)
+    addopenRef = React.createRef(null)
 
     constructor(props) {
         super(props);
@@ -33,13 +35,23 @@ class OpeningView extends React.Component {
         this.setSelectedData = this.setSelectedData.bind(this)
         this.deleteSelectedNode = this.deleteSelectedNode.bind(this)
         this.setOpenings = this.setOpenings.bind(this)
+        this.setSelectedOpening = this.setSelectedOpening.bind(this)
+        this.addOpening = this.addOpening.bind(this)
+        this.setSelectedOpening = this.setSelectedOpening.bind(this)
+        this.deleteSelectedOpening = this.deleteSelectedOpening.bind(this)
+    }
+
+    addOpening(name, fen) {
+        axios.post("http://localhost:8080/opening/", { fen: fen, name: name })
+            .then((response) => this.setSelectedOpening(response.data))
+            .catch((error) => { console.error(error.message) });
     }
 
     setOpenings(openings) {
         this.setState({ openings: openings })
         // loading the openings, set default value to selectedOpening
         if (openings && this.state.selectedOpening == null) {
-            this.loadOpening(openings[0].id)
+            this.setSelectedOpening(openings[0].id)
             this.setSelectedData(openings[0].startingNode.id)
         }
     }
@@ -50,9 +62,9 @@ class OpeningView extends React.Component {
             .catch((error) => { console.error(error.message) });
     }
 
-    loadOpening(id) {
+    getOpening(id, callback) {
         axios.get("http://localhost:8080/opening/" + id)
-            .then((response) => this.setSelectedOpening(response.data))
+            .then((response) => callback(response.data))
             .catch((error) => { console.error(error.message) });
     }
 
@@ -65,22 +77,26 @@ class OpeningView extends React.Component {
     deleteSelectedNode() {
         this.setSelectedData(this.getSelectedData().parentId)
         axios.delete("http://localhost:8080/chessnode/" + this.getSelectedData().id)
-            .then(response => this.loadOpening(this.state.selectedOpening.id))
+            .then(response => this.setSelectedOpening(this.state.selectedOpening.id))
             .catch((error) => { console.error(error.message) });
     }
-
+    deleteSelectedOpening() {
+        this.setSelectedOpening(null)
+        axios.delete("http://localhost:8080/opening/" + this.state.selectedOpening.id)
+            .then(response => this.getOpenings())
+            .catch((error) => { console.error(error.message) });
+    }
     addNode(uci) {
         axios.post("http://localhost:8080/chessnode/" + this.getSelectedData().id, { uci: uci })
             .then(response => {
-                this.loadOpening(this.state.selectedOpening.id)
+                this.setSelectedOpening(this.state.selectedOpening.id)
                 this.setSelectedData(response.data)
             })
             .catch((error) => { console.error(error.message) });
     }
 
-    setSelectedOpening(data) {
-        this.setState({ selectedOpening: data })
-        this.shouldFit = 10
+    setSelectedOpening(id) {
+        this.getOpening(id, (data) => this.setState({ selectedOpening: data }))
     }
 
     getHoveredData() {
@@ -126,13 +142,10 @@ class OpeningView extends React.Component {
     componentDidMount() {
         this.getOpenings()
     }
+
     componentDidUpdate() {
-        if (this.shouldFit > 0) {
-            this.Viewer.current.fitToViewer()
-            this.Viewer.current.fitToViewer()
-            this.shouldFit -= 1
-        }
     }
+
     getTooltipContent(obj) {
         return () => < Chessground width={300} height={300} config={
             obj.getHoveredData() != null ?
@@ -167,14 +180,10 @@ class OpeningView extends React.Component {
             <div className="openingDiv" >
                 <nav className="verticalNavBar">
                     <ul>
-                        <li key="parent">
-                            <p>
-                                Openings
-                            </p>
-                        </li>
+                        <AddOpeningWidget addopening={this.addOpening} />
                         {this.state.openings.map(op =>
                             <li key={op.name}>
-                                <a onClick={() => this.loadOpening(op.id)} className={this.state.selectedOpening && op.id == this.state.selectedOpening.id ? 'selected' : undefined}>
+                                <a onClick={() => this.setSelectedOpening(op.id)} className={this.state.selectedOpening && op.id == this.state.selectedOpening.id ? 'selected' : undefined}>
                                     {op.name}
                                 </a>
                             </li>)
@@ -205,10 +214,14 @@ class OpeningView extends React.Component {
                 <nav className="verticalNavBar">
                     <ul>
                         <li>
+                            <button onClick={this.deleteSelectedOpening}>Delete Opening</button>
+                        </li>
+                        <li>
                             <button onClick={this.deleteSelectedNode}>Delete Node</button>
                         </li>
                     </ul>
                 </nav>
+
                 <ReactTooltip
                     className="tooltipView"
                     place="right"
