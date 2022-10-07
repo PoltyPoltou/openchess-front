@@ -12,10 +12,12 @@ import Chessground from "@react-chess/chessground";
 import { hierarchy, tree } from "d3";
 import AddOpeningWidget from "./openingView/addOpeningWidget";
 import { Alert, Snackbar } from "@mui/material";
+import NotificationWidget from "./openingView/notificationWidget";
 const rectSize = 55
 class OpeningView extends React.Component {
     Viewer = React.createRef(null)
     addopenRef = React.createRef(null)
+    snackbar = React.createRef(null)
 
     constructor(props) {
         super(props);
@@ -26,7 +28,6 @@ class OpeningView extends React.Component {
             openings: [],
             selectedOpening: null,
             selectedData: null,
-            snackbar: { open: false, msg: "", severity: "error" }
         }
         this.hoveredData = null
         this.shouldFit = 0
@@ -40,24 +41,30 @@ class OpeningView extends React.Component {
         this.addOpening = this.addOpening.bind(this)
         this.setSelectedOpening = this.setSelectedOpening.bind(this)
         this.deleteSelectedOpening = this.deleteSelectedOpening.bind(this)
-        this.handleError = this.handleError.bind(this)
     }
 
     handleError(msg) {
-        this.setState({ snackbar: { open: true, severity: "error", msg: msg } })
+        this.snackbar.current.notify({ severity: "error", msg: msg })
     }
 
     handleWarning(msg) {
-        this.setState({ snackbar: { open: true, severity: "warning", msg: msg } })
+        this.snackbar.current.notify({ severity: "warning", msg: msg })
     }
 
     handleSuccess(msg) {
-        this.setState({ snackbar: { open: true, severity: "success", msg: msg } })
+        this.snackbar.current.notify({ severity: "success", msg: msg })
+    }
+
+    handleInfo(msg) {
+        this.snackbar.current.notify({ severity: "info", msg: msg })
     }
 
     addOpening(name, fen) {
         axios.post("http://localhost:8080/opening/", { fen: fen, name: name })
-            .then((response) => this.setSelectedOpening(response.data))
+            .then((response) => {
+                this.getOpenings()
+                this.setSelectedOpening(response.data)
+            })
             .catch((error) => { this.handleError(error.message) });
     }
 
@@ -69,7 +76,7 @@ class OpeningView extends React.Component {
                 this.handleWarning("No opening found")
             } else {
                 this.setSelectedOpening(openings[0].id)
-                this.setSelectedData(openings[0].startingNode.id)
+                this.getOpenings(openings[0].startingNode.id)
             }
         }
     }
@@ -104,10 +111,14 @@ class OpeningView extends React.Component {
     }
 
     deleteSelectedOpening() {
+        let name = this.state.selectedOpening.name
         axios.delete("http://localhost:8080/opening/" + this.state.selectedOpening.id)
-            .then(response => this.getOpenings())
+            .then(response => {
+                this.handleSuccess("Opening " + name + " deleted");
+                this.getOpenings();
+            })
             .catch((error) => { this.handleError(error.message) });
-        this.setSelectedOpening(null)
+        this.handleInfo("Deleting opening " + this.state.selectedOpening.name)
     }
 
     addNode(uci) {
@@ -265,14 +276,7 @@ class OpeningView extends React.Component {
                     getContent={this.getTooltipContent(this)}
                 />
                 <Chessground contained={false} width={400} height={400} config={this.getSelectedDataConfig()}></Chessground>
-                <Snackbar
-                    open={this.state.snackbar.open}
-                    autoHideDuration={5000}
-                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}>
-                    <Alert variant="filled" severity={this.state.snackbar.severity}>
-                        {this.state.snackbar.msg}
-                    </Alert>
-                </Snackbar>
+                <NotificationWidget severity={this.state.snackSeverity} msg={this.state.snackMsg} ref={this.snackbar} />
             </div >
         )
     }

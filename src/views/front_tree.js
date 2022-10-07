@@ -8,7 +8,9 @@ class CreateTree extends React.Component {
 
     componentDidUpdate() {
         const svg = select(this.svgRef.current)
-
+        const linksG = svg.select("#links")
+        const nodesG = svg.select("#nodes")
+        const textsG = svg.select("#texts")
 
         const setterTooltipData = this.props.setterTooltipData
         const setterSelectedData = this.props.setterSelectedData
@@ -19,11 +21,9 @@ class CreateTree extends React.Component {
             arr[index].x = elmt.x + width / 2 - rectSize / 2
             arr[index].y = elmt.y
         })
-        svg.attr("id", "d3-tree-draw")
-        const g = svg
 
         let sourcePos = d => [d.source.x + rectSize / 2, d.source.y + rectSize]
-        const pathes = g.selectAll("path").data(chessDataHeriarchy.links(), d => d.source.data.id + "->" + d.target.data.id)
+        const pathes = linksG.selectAll("path").data(chessDataHeriarchy.links(), d => d.source.data.id + "->" + d.target.data.id)
         pathes.enter().insert("path")
             .classed("line", true)
             .merge(pathes)
@@ -35,13 +35,11 @@ class CreateTree extends React.Component {
                 .target(d => [d.target.x + rectSize / 2, d.target.y]))
         pathes.exit().remove()
 
-        const nodes = g.selectAll("circle").data(nodeData)
-        g.selectAll("circle").data(nodeData, d => d.data.id)
+        const nodes = nodesG.selectAll("circle").data(nodeData)
+        nodesG.selectAll("circle").data(nodeData, d => d.data.id)
             .enter()
             .append("circle")
             .merge(nodes)
-            //     .attr("x", d => d.parent ? d.parent.x : 0)
-            //     .attr("y", d => d.parent ? d.parent.y : 0)
             .on("mousemove", (evt, obj, n) => {
                 setterTooltipData(obj.data)
             })
@@ -52,31 +50,19 @@ class CreateTree extends React.Component {
             .attr("data-event", "mousemove")
             .attr("data-event-off", "click")
             .attr("data-for", "quickview")
-            //     // .on("mouseover", function (evt, d) { d.hovered = true; updateTree() })
-            //     // .on("mouseout", function (evt, d) { d.hovered = false; updateTree() })
             .classed("node", true)
             .classed("whiteMove", d => d.data.color === "white")
             .classed("blackMove", d => d.data.color === "black")
-            //     .classed("hovered", d => d.hovered)
-            //     .classed("activeNode", d => d.active)
-            //     .transition()
-            //     .duration(animTime)
             .attr("cx", d => d.x + rectSize / 2)
             .attr("cy", d => d.y + rectSize / 2)
         nodes.exit().remove()
 
-        const texts = g.selectAll("text").data(nodeData, d => d.data.id)
+        const texts = textsG.selectAll("text").data(nodeData, d => d.data.id)
         texts.enter()
             .append("text")
             .classed("nodeText", true)
             .merge(texts)
-            // .merge(texts)
-            //     // .attr("x", d => d.parent ? d.parent.x + rectSize / 2 : rectSize / 2)
-            //     // .attr("y", d => d.parent ? d.parent.y + rectSize / 2 : rectSize / 2)
             .text(d => d.data.san)
-            //     // .classed("hovered", d => d.hovered)
-            //     // .transition()
-            //     // .duration(animTime)
             .attr("x", d => d.x + rectSize / 2)
             .attr("y", d => d.y + rectSize / 2)
         texts.exit().remove()
@@ -85,7 +71,10 @@ class CreateTree extends React.Component {
     }
 
     render() {
-        return <g ref={this.svgRef}>
+        return <g id="d3-tree-draw" ref={this.svgRef}>
+            <g id="nodes" />
+            <g id="links" />
+            <g id="texts" />
         </g>
     }
 }

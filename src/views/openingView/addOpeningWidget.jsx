@@ -10,6 +10,12 @@ class AddOpeningWidget extends React.Component {
             name: "",
         }
     }
+
+    submit() {
+        this.props.addopening(this.state.name, this.state.fen)
+        ReactTooltip.hide(this.addopenRef)
+    }
+
     render() {
         return <>
             <li key="parent">
@@ -27,8 +33,14 @@ class AddOpeningWidget extends React.Component {
                     <p>Opening Name</p>
                     <input type="text" placeholder="Name" onChange={event => this.setState({ name: event.target.value })} />
                     <p>Starting Position</p>
-                    <input type="text" placeholder="Fen" onChange={event => this.setState({ fen: event.target.value })} />
-                    <button onClick={() => { this.props.addopening(this.state.name, this.state.fen) }}>Add</button>
+                    <input type="text"
+                        placeholder="Fen"
+                        defaultValue="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+                        onChange={event => this.setState({ fen: event.target.value })}
+                        onKeyDown={(e) => { if (e.key === "Enter") this.submit() }}
+                    />
+
+                    <button onClick={this.submit}>Add</button>
                 </div >}
             />
         </>
