@@ -1,17 +1,16 @@
-import React from "react";
+import Chessground from "@react-chess/chessground";
+import axios from "axios";
 import 'chessground/assets/chessground.base.css';
 import 'chessground/assets/chessground.brown.css';
-import CreateTree from "./front_tree";
-import { ReactSVGPanZoom, INITIAL_VALUE, TOOL_AUTO } from "react-svg-pan-zoom";
-
-import axios from "axios"
-
-import "./openingView.css"
-import ReactTooltip from "react-tooltip-rc";
-import Chessground from "@react-chess/chessground";
 import { hierarchy, tree } from "d3";
-import AddOpeningWidget from "./openingView/addOpeningWidget";
-import NotificationWidget from "./openingView/notificationWidget";
+import React from "react";
+import { INITIAL_VALUE, ReactSVGPanZoom, TOOL_AUTO } from "react-svg-pan-zoom";
+import ReactTooltip from "react-tooltip-rc";
+
+import "./openingView.css";
+import AddOpeningWidget from "./theoryView/addOpeningWidget";
+import CreateTree from "./theoryView/front_tree";
+import NotificationWidget from "./theoryView/notificationWidget";
 const rectSize = 55
 class OpeningView extends React.Component {
     Viewer = React.createRef(null)
