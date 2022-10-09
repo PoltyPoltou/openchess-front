@@ -2,9 +2,11 @@ import { createBrowserRouter, NavLink, Outlet } from "react-router-dom";
 import { ChessView } from "./views/ChessView";
 import "./routes.css"
 import OpeningView from "./views/OpeningView";
+import UserReview from "./views/UserReview";
 export const routes = [
     { path: "/chess", name: "Chess" },
-    { path: "/foo", name: "Foo" },
+    { path: "/opening", name: "Openings" },
+    { path: "/user", name: "Review" },
 ];
 
 function renderNavBar() {
@@ -31,7 +33,8 @@ const routesComp = [
     {
         path: "/", element: renderNavBar(), children: [
             { path: "/chess", element: <ChessView /> },
-            { path: "/foo", element: <OpeningView /> },
+            { path: "/opening", element: <OpeningView /> },
+            { path: "/user", element: <UserReview /> },
         ]
     },
 ];

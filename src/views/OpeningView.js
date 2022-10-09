@@ -1,13 +1,12 @@
 import Chessground from "@react-chess/chessground";
 import axios from "axios";
-import 'chessground/assets/chessground.base.css';
-import 'chessground/assets/chessground.brown.css';
+
 import { hierarchy, tree } from "d3";
 import React from "react";
 import { INITIAL_VALUE, ReactSVGPanZoom, TOOL_AUTO } from "react-svg-pan-zoom";
 import ReactTooltip from "react-tooltip-rc";
 
-import "./openingView.css";
+import "./OpeningView.css";
 import AddOpeningWidget from "./theoryView/addOpeningWidget";
 import CreateTree from "./theoryView/front_tree";
 import NotificationWidget from "./theoryView/notificationWidget";
