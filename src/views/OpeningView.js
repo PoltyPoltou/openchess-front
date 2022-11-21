@@ -9,12 +9,12 @@ import ReactTooltip from "react-tooltip-rc";
 import "./OpeningView.css";
 import AddOpeningWidget from "./theoryView/addOpeningWidget";
 import CreateTree from "./theoryView/front_tree";
-import NotificationWidget from "./theoryView/notificationWidget";
+import NotificationWidget from "./common/NotificationWidget";
 const rectSize = 55
 class OpeningView extends React.Component {
     Viewer = React.createRef(null)
     addopenRef = React.createRef(null)
-    snackbar = React.createRef(null)
+    notificationBar = React.createRef(null)
 
     constructor(props) {
         super(props);
@@ -41,19 +41,19 @@ class OpeningView extends React.Component {
     }
 
     handleError(msg) {
-        this.snackbar.current.notify({ severity: "error", msg: msg })
+        this.notificationBar.current.sendMessage("error", msg)
     }
 
     handleWarning(msg) {
-        this.snackbar.current.notify({ severity: "warning", msg: msg })
+        this.notificationBar.current.sendMessage("warning", msg)
     }
 
     handleSuccess(msg) {
-        this.snackbar.current.notify({ severity: "success", msg: msg })
+        this.notificationBar.current.sendMessage("success", msg)
     }
 
     handleInfo(msg) {
-        this.snackbar.current.notify({ severity: "info", msg: msg })
+        this.notificationBar.current.sendMessage("info", msg)
     }
 
     addOpening(name, fen) {
@@ -273,7 +273,7 @@ class OpeningView extends React.Component {
                     getContent={this.getTooltipContent(this)}
                 />
                 <Chessground contained={false} width={400} height={400} config={this.getSelectedDataConfig()}></Chessground>
-                <NotificationWidget severity={this.state.snackSeverity} msg={this.state.snackMsg} ref={this.snackbar} />
+                <NotificationWidget ref={this.notificationBar} />
             </div >
         )
     }

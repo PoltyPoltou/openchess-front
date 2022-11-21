@@ -8,6 +8,9 @@ class NotificationWidget extends React.Component {
     notify(data) {
         this.setState({ open: true, msg: data.msg, severity: data.severity })
     }
+    sendMessage(severity, msg) {
+        this.notify({ severity: severity, msg: msg })
+    }
     render() {
         return <Snackbar
             open={this.state.open}
