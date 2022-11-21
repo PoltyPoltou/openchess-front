@@ -1,8 +1,10 @@
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import axios from 'axios';
 import { hierarchy, tree } from "d3";
 import React from 'react';
 import { INITIAL_VALUE, ReactSVGPanZoom, TOOL_AUTO } from "react-svg-pan-zoom";
 import CreateTree from './userView/front_tree';
+import NotificationWidget from "./common/NotificationWidget";
 
 const rectSize = 55
 const toggleSx = (white) => {
@@ -32,7 +34,7 @@ const toggleSx = (white) => {
 }
 class UserReview extends React.Component {
     Viewer = React.createRef(null)
-    snackbar = React.createRef(null)
+    notificationBar = React.createRef(null)
 
     constructor(props) {
         super(props);
@@ -48,8 +50,8 @@ class UserReview extends React.Component {
     handleColor(event, clr) {
         if (clr !== null) {
             this.setState({ color: clr });
+            }
         }
-    }
 
     render() {
         let x0 = Infinity;
@@ -89,14 +91,15 @@ class UserReview extends React.Component {
             >
                 <svg width={width} height={height}>
                     <CreateTree
-                        setterSelectedData={this.setSelectedData}
-                        setterTooltipData={this.setHoveredData}
+                        setterSelectedData={() => 0}
+                        setterTooltipData={() => 0}
                         width={width} height={height}
                         chessDataHeriarchy={chessDataHeriarchy}
                         nodeData={nodeData}
                     />
                 </svg>
             </ReactSVGPanZoom>
+            <NotificationWidget ref={this.notificationBar} />
         </div>
     }
 }
